@@ -32,5 +32,6 @@ Rails.application.routes.draw do
 
   get 'search_by_product',to:'purchases#search_product'
 
+  get 'all_category' ,to: 'categories#index'
 
 end

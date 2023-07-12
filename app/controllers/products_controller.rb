@@ -1,22 +1,13 @@
 class ProductsController < ApplicationController
 
 	def create
-		# byebug
 		@product=@current_user.products.new(products_params)
 		@product.status='available'
-		if @product.present?
-		  if @product.image.present? 
-			  @product.save
-	      # render json: {product:@product ,image_url: rails_blob_path(@product.image, disposition: "attachment", only_path: true)} ,status: :created
- 		  	render json: @product
- 		  else
-	 		  	@product.save
-	 		  	render json: @product
-	  	end
- 		else
-				render json:{error: @product.errors.full_messages},status: :unprocessable_entity
+		if @product.save
+			render json: @product ,status: :created
+		else
+			render json:{error: @product.errors.full_messages},status: :unprocessable_entity
 		end
-
 	end
 
 	def update
@@ -48,63 +39,46 @@ class ProductsController < ApplicationController
 
 	def available_product
 		@product=Product.where(status:"available")
-		if @product.present?
-			render json: @product ,status: :ok
-		else
-			render json:{message:"no available product "}
-		end
+		check_render(@product ,"No Products Are available")
 	end
   
   def sold_product
   	@product=Product.where(status:'sold',user_id:@current_user.id)
-  	if @product.present?
-			render json: @product ,status: :ok
-		else
-			render json:{message:"not product sold till now"}
-		end
+  	check_render(@product ,"No product sold")
   end
 
 	def particular_product
 		@product=Product.where(name:params[:name],status:'available')
-		if @product.present?
-			render json: @product ,status: :ok
-		else
-			render json:{message:"not found"}
-		end
+		check_render(@product, "Please Write valid name")
 	end
 
 	def users_product
 		@product=Product.where(user_id:@current_user.id, status:'available')
-		if @product.present?
-			render json: @product ,status: :ok
-		else
-			render json:{message:"not product of user"}
-		end
+		check_render(@product ,"No Products of this user")
 	end  
 
 	def search_product_category
-		@product=Product.where(category:params[:category],status:'available')
-		if @product.present?
-			render json: @product ,status: :ok
-		else
-			render json:{message:"please write valid category"}
-		end
+		# byebug
+		@product=Product.where(category_id:params[:category_id], status:"available")
+		check_render(@product ,"Please give write id of category")
 	end
 
 	def search_alphanumeric
-		@product=Product.where(alphanumeric_id:params[:alphanumeric_id],status:'available')
-		if @product.present?
-			render json: @product, status: :ok
-		else
-			render json:{message:"not product of this alphanumeric_id "}
-		end
+		@product=Product.where(alphanumeric_id:params[:alphanumeric_id], status:'available')
+		check_render(@product,"Please give valid alphanumeric id")
 	end 
 
-	private
-
+private
 	def products_params
-		params.permit(:name,:category,:alphanumeric_id,:price,:description,:image)
+		params.permit(:name, :category_id, :alphanumeric_id, :price, :description, :image)
 	end
 
+	def check_render( value, message )
+		if value.present?
+			render json: value , status: :ok
+		else
+			render json: { message: "#{message}" }
+		end
+	end 
 end
 

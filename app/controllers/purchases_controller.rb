@@ -1,14 +1,16 @@
 class PurchasesController < ApplicationController
 	
 	def buy_product
+				byebug
 		if params[:id].present? 
-			product=Product.find_by(id:params[:id])
-			if product.present?
-				if product.user_id == @current_user.id
+			@product = Product.find_by(id:params[:id])
+			if @product.present?
+				if @product.user_id == @current_user.id
 					render json:{message:"this is your product ,you can not buy"}
 				else
-					product.update(status:"sold")
-					@purchase=@current_user.purchases.new(product_id:params[:id])
+					@product.update(status:"sold")
+			
+					@purchase=@current_user.purchases.new(product_id:@product.id)
 					if @purchase.save
 						render json:@purchase ,status: :created
 					else
@@ -48,4 +50,5 @@ class PurchasesController < ApplicationController
 			render json:{message:"No purchase"}
 		end
 	end
+	
 end
